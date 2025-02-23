@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Rest API Requests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="/static/main.css" /> <!-- Link para o CSS -->
+    <script src="main.js"></script>
+</head>
+<body>
+    <h1>Seleção de Requisição</h1>
+    <div class="container">
+        <label for="requestType">Tipo de Requisição:</label>
+        <select id="requestType">
+            <option value="langs">Linguagem</option>
+            <option value="frameworks">Framework</option>
+        </select>
+
+        <label for="requestOption">Opção:</label>
+        <select id="requestOption">
+            <!-- As opções podem ser carregadas dinamicamente com JavaScript -->
+        </select>
+
+        <button id="sendRequest">Enviar Requisição</button>
+    </div>
+</body>
+</html>
