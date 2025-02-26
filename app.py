@@ -24,7 +24,7 @@ migrate = Migrate(app, db)
 @app.route('/langs', methods=['POST'])
 def add_language():
     data = request.get_json()
-    newLang = Lang(name=data['name'], creation=data['creation'], creator=data['creator'], description=data['description'], typing=data['typing'], download=['download'], tutorial=['tutorial'], docs=['docs'])
+    newLang = Lang(name=data['name'], creation=data['creation'], creator=data['creator'], description=data['description'], typing=data['typing'], download=data['download'], tutorial=data['tutorial'], docs=data['docs'])
     db.session.add(newLang)
     db.session.commit()
     return jsonify({'message': 'linguagem cadastrada com sucesso'}), 201
@@ -63,7 +63,7 @@ def remove_lang(lang_id):
 @app.route('/frameworks', methods=['POST'])
 def add_framework():
     data = request.get_json()
-    newframework = Framework(name=data['name'], creation=data['creation'], creator=data['creator'], description=data['description'], language=data['language'], download=['download'], tutorial=['tutorial'], docs=['docs'])
+    newframework = Framework(name=data['name'], creation=data['creation'], creator=data['creator'], description=data['description'], language=data['language'], download=data['download'], tutorial=data['tutorial'], docs=data['docs'])
     db.session.add(newframework)
     db.session.commit()
     return jsonify({"message": "framework adicionada com sucesso"}), 201

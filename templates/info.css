@@ -1,0 +1,137 @@
+/* Reset básico para remover margens e paddings padrão */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilos gerais do corpo */
+body {
+    font-family: 'Inter', sans-serif; /* Fonte moderna e limpa */
+    background-color: #f8f9fa;
+    color: #2d3748;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Container principal */
+.info-container {
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+    max-width: 1000px;
+    width: 90%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+/* Estilo para o nome (centralizado) */
+.name {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 2.5rem;
+    color: #1a202c;
+    font-weight: 600; /* Peso da fonte mais forte */
+    margin-bottom: 1.5rem;
+}
+
+/* Estilo para os blocos de informação */
+.info-block {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0; /* Borda sutil */
+}
+
+/* Posicionamento dos blocos */
+.creation {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.5rem;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+.description {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.25rem;
+    color: #718096;
+    margin-bottom: 1.5rem;
+}
+
+.tutorial {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.download {
+    grid-column: 2;
+    grid-row: 4;
+}
+
+.typing {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.docs {
+    grid-column: 1;
+    grid-row: 4;
+}
+
+/* Estilo para os títulos dos blocos */
+.info-block h3 {
+    font-size: 1.25rem;
+    color: #2b6cb0; /* Azul suave */
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+
+/* Estilo para o conteúdo dos blocos */
+.info-block p {
+    font-size: 1rem;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .info-container {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+    }
+
+    .name, .creation, .description {
+        grid-column: 1;
+    }
+
+    .tutorial, .download, .typing, .docs {
+        grid-column: 1;
+    }
+
+    .name {
+        font-size: 2rem;
+    }
+
+    .creation {
+        font-size: 1.25rem;
+    }
+
+    .description {
+        font-size: 1rem;
+    }
+
+    .info-block h3 {
+        font-size: 1.125rem;
+    }
+
+    .info-block p {
+        font-size: 0.875rem;
+    }
+}
