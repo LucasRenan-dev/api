@@ -1,0 +1,23 @@
+<form id="registerForm">
+    <input type="text" name="nome" placeholder="Nome" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="senha" placeholder="Senha" required>
+    <button type="submit">Cadastrar</button>
+</form>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const response = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            nome: e.target.nome.value,
+            email: e.target.email.value,
+            senha: e.target.senha.value
+        })
+    });
+    const result = await response.json();
+    alert(result.message || result.error);
+});
+</script>

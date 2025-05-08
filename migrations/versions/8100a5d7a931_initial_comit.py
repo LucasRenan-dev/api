@@ -1,8 +1,8 @@
-"""init
+"""initial comit
 
-Revision ID: 8de4070eaa94
+Revision ID: 8100a5d7a931
 Revises: 
-Create Date: 2025-02-07 20:57:07.576075
+Create Date: 2025-05-07 10:07:33.345361
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8de4070eaa94'
+revision = '8100a5d7a931'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,7 +25,7 @@ def upgrade():
     sa.Column('creator', sa.String(length=255), nullable=False),
     sa.Column('description', sa.String(length=255), nullable=False),
     sa.Column('language', sa.String(length=255), nullable=False),
-    sa.Column('download_link', sa.String(length=255), nullable=False),
+    sa.Column('download', sa.String(length=255), nullable=False),
     sa.Column('tutorial', sa.String(length=255), nullable=False),
     sa.Column('docs', sa.String(length=255), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -37,6 +37,9 @@ def upgrade():
     sa.Column('creator', sa.String(length=255), nullable=False),
     sa.Column('description', sa.String(length=255), nullable=False),
     sa.Column('typing', sa.String(length=255), nullable=False),
+    sa.Column('download', sa.String(length=255), nullable=False),
+    sa.Column('tutorial', sa.String(length=255), nullable=False),
+    sa.Column('docs', sa.String(length=255), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

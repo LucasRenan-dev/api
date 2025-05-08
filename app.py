@@ -2,18 +2,32 @@ from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from db import db 
 from flask_cors import CORS    #importa as libs para fazer a aplicação funcionar
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required
+
+
 
 #importa os modelos para o DB
 from models.langs import Lang
 from models.frameworks import Framework
+from  models.users import User
 
 
 
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:pgadm@localhost:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:senhafoda@localhost:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['JWT_SECRET_KEY'] = 'chave_secreta_pra_acessar_coisas'
+jwt = JWTManager(app)
+
+
+# Exemplo de rota protegida
+@app.route('/dashboard')
+@jwt_required()
+def dashboard(): #ROTA PARA TESTES, DEPOIS INTEGRA TUDO NOS ENDPOINT DA API
+    return jsonify({"message": "Área logada!"})
 
 
 db.init_app(app)
@@ -98,3 +112,51 @@ def remove_framework(framework_id):
     return jsonify({"message": "framework removido com sucesso!"})
 
 
+#ROTAS E METODOS PARA O USUARIOS
+
+
+# ===> CADASTRAR O USUARIO - VERIFICAR SE JA EXISTE NO BANCO <===
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+
+    # Validação corrigida (verifica se campos existem e não são vazios)
+    if not data or not data.get('email') or not data.get('senha'):
+        return jsonify({"error": "dados incompletos"}), 400
+    
+    # Verifica se o email já está cadastrado
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"error": "Email já cadastrado"}), 409
+    
+    #se nenhum dos passo anteriores se cumprir, o usuario é cadastrado 
+
+    new_user = User(
+        name=data.get('nome'),
+        email= data['email'],
+        senha= data['senha']
+    )
+
+
+    db.session.add(new_user)
+    db.session.commit()
+    
+    return jsonify({"message": "usuario cadastrado com sucesso"}), 201
+
+
+
+# ===> LOGIN DO USUARIO <===
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    user = User.query.filter_by(email=data.get('email')).first()
+
+    #verificar as credenciais no banco, para autenticar o user
+    if not user or not user.verificar_senha(data.get('senha')):
+        return jsonify({"error": "Email ou senha inválidos"}), 401
+    
+    # Cria um token JWT para sessão
+    access_token = create_access_token(identity=user.id)
+    return jsonify(access_token=access_token), 200
+
+#feito isso, o back end esta praticamente pronto
