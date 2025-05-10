@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tech Hub</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { display: flex; gap: 20px; margin-bottom: 20px; }
+        #details-container { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
+        .back-btn { margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+    <h1>Tech Hub - Dashboard</h1>
+    
+    <div class="container">
+        <div>
+            <label for="requestType">Tipo:</label>
+            <select id="requestType">
+                <option value="langs">Linguagens</option>
+                <option value="frameworks">Frameworks</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="requestOption">Item:</label>
+            <select id="requestOption"></select>
+        </div>
+        
+        <button id="fetchBtn">Buscar Detalhes</button>
+    </div>
+    
+    <div id="details-container">
+        <!-- Os detalhes serão carregados aqui -->
+    </div>
+    
+    <button id="backBtn" class="back-btn">Voltar</button>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

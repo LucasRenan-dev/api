@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_migrate import Migrate
 from db import db 
 from flask_cors import CORS    #importa as libs para fazer a aplicação funcionar
-from flask_jwt_extended import create_access_token, JWTManager, jwt_required
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt_identity
 
 
 
@@ -23,11 +23,6 @@ app.config['JWT_SECRET_KEY'] = 'chave_secreta_pra_acessar_coisas'
 jwt = JWTManager(app)
 
 
-# Exemplo de rota protegida
-@app.route('/dashboard')
-@jwt_required()
-def dashboard(): #ROTA PARA TESTES, DEPOIS INTEGRA TUDO NOS ENDPOINT DA API
-    return jsonify({"message": "Área logada!"})
 
 
 db.init_app(app)
@@ -149,14 +144,37 @@ def register():
 def login():
     data = request.get_json()
     
-    user = User.query.filter_by(email=data.get('email')).first()
-
-    #verificar as credenciais no banco, para autenticar o user
-    if not user or not user.verificar_senha(data.get('senha')):
+    #Confere as credenciais no formulario
+    user = User.query.filter_by(email=data['email']).first()
+    if not user or not user.verificar_senha(data['senha']):
         return jsonify({"error": "Email ou senha inválidos"}), 401
     
-    # Cria um token JWT para sessão
+    # CRIA O TOKEN JWT
     access_token = create_access_token(identity=user.id)
-    return jsonify(access_token=access_token), 200
+    
+    # RETORNA O TOKEN COM O LOGIN
+    return jsonify({
+        "access_token": access_token,
+        "user_id": user.id,
+        "message": "Login bem-sucedido"
+    }), 200
 
-#feito isso, o back end esta praticamente pronto
+
+#ROTAS PARA ABRIR OS TEMPLATES(HTML) via flask, para integrar tudo
+
+#rota para logar/acessar sistema
+
+@app.route('/login-page', methods=['GET'])
+def open_loginpage():
+    return render_template('login.html')
+
+#rota para a pagina de login (talvez precise de JWT eventualmente)
+@app.route('/register-page', methods=['GET'])
+def open_registerpage():
+    return render_template('register.html')
+
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
