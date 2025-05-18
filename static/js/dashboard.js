@@ -1,33 +1,43 @@
+// Auth check and logout functionality
+fetch('/check-auth')
+  .then(response => response.json())
+  .then(data => {
+    if (!data.authenticated) {
+      window.location.href = '/login';
+    }
+  });
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  fetch('/logout', { method: 'POST' })
+    .then(() => window.location.href = '/login');
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // Elementos DOM
+    // DOM Elements
     const typeSelect = document.getElementById('requestType');
     const optionSelect = document.getElementById('requestOption');
     const fetchBtn = document.getElementById('fetchBtn');
     const backBtn = document.getElementById('backBtn');
     const detailsContainer = document.getElementById('details-container');
     
-    // Variáveis de estado
+    // State variables
     let currentList = [];
-    let currentView = 'list'; // 'list' ou 'details'
+    let currentView = 'list';
     
-    // Carrega opções quando o tipo muda
+    // Event listeners
     typeSelect.addEventListener('change', loadOptions);
-    
-    // Botão de busca
     fetchBtn.addEventListener('click', showDetails);
+    backBtn.addEventListener('click', returnToListView);
     
-    // Botão de voltar
-    backBtn.addEventListener('click', () => {
-        detailsContainer.innerHTML = '';
-        backBtn.style.display = 'none';
-        fetchBtn.style.display = 'inline-block';
-        currentView = 'list';
-    });
+    // Load initial options
+    await loadOptions();
     
-    // Carrega as opções da API
+    // Functions
     async function loadOptions() {
         const type = typeSelect.value;
         try {
+            showLoading(optionSelect, 'Carregando opções...');
+            
             const response = await fetch(`http://127.0.0.1:5000/${type}`);
             if (!response.ok) throw new Error('Erro ao carregar opções');
             
@@ -35,13 +45,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateOptions();
         } catch (error) {
             console.error('Erro:', error);
-            detailsContainer.innerHTML = `<p class="error">${error.message}</p>`;
+            showError(detailsContainer, error.message);
         }
     }
     
-    // Atualiza o dropdown de opções
     function updateOptions() {
         optionSelect.innerHTML = '';
+        
+        if (currentList.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Nenhuma opção disponível';
+            optionSelect.appendChild(option);
+            return;
+        }
+        
         currentList.forEach(item => {
             const option = document.createElement('option');
             option.value = item.id;
@@ -50,67 +68,110 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // Mostra os detalhes do item selecionado
     async function showDetails() {
         const type = typeSelect.value;
         const id = optionSelect.value;
         
-        if (!id) {
-            alert('Por favor, selecione um item');
+        if (!id || id === '') {
+            showError(detailsContainer, 'Por favor, selecione um item');
             return;
         }
         
         try {
+            showLoading(detailsContainer, 'Carregando detalhes...');
+            
             const response = await fetch(`http://127.0.0.1:5000/${type}/${id}`);
             if (!response.ok) throw new Error('Item não encontrado');
             
             const data = await response.json();
             renderDetails(data);
-            
-            // Atualiza a UI
-            fetchBtn.style.display = 'none';
-            backBtn.style.display = 'inline-block';
-            currentView = 'details';
+            switchToDetailView();
         } catch (error) {
             console.error('Erro:', error);
-            detailsContainer.innerHTML = `<p class="error">${error.message}</p>`;
+            showError(detailsContainer, error.message);
         }
     }
     
-    // Renderiza os detalhes na página
     function renderDetails(data) {
         detailsContainer.innerHTML = `
-            <h2>${data.name}</h2>
-            <p><strong>Criado em:</strong> ${data.creation || 'Não disponível'}</p>
-            <p><strong>Criador:</strong> ${data.creator || 'Não disponível'}</p>
+            <div class="detail-header">
+                <h2>${data.name}</h2>
+                <div class="meta-info">
+                    ${data.creation ? `<span><i class="fas fa-calendar-alt"></i> ${data.creation}</span>` : ''}
+                    ${data.creator ? `<span><i class="fas fa-user-tie"></i> ${data.creator}</span>` : ''}
+                </div>
+            </div>
             
-            <h3>Descrição</h3>
-            <p>${data.description || 'Sem descrição disponível'}</p>
-            
-            <div class="details-grid">
-                <div>
-                    <h4>Typing</h4>
-                    <p>${data.typing || 'Não especificado'}</p>
-                </div>
+            <div class="detail-content">
+                <h3><i class="fas fa-align-left"></i> Descrição</h3>
+                <p>${data.description || 'Sem descrição disponível'}</p>
                 
-                <div>
-                    <h4>Documentação</h4>
-                    <a href="${data.docs || '#'}" target="_blank">Acessar</a>
-                </div>
-                
-                <div>
-                    <h4>Tutorial</h4>
-                    <a href="${data.tutorial || '#'}" target="_blank">Acessar</a>
-                </div>
-                
-                <div>
-                    <h4>Download</h4>
-                    <a href="${data.download || '#'}" target="_blank">Baixar</a>
+                <div class="details-grid">
+                    ${data.typing ? `
+                    <div class="detail-card">
+                        <h4><i class="fas fa-keyboard"></i> Typing</h4>
+                        <p>${data.typing}</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${data.docs ? `
+                    <div class="detail-card">
+                        <h4><i class="fas fa-book"></i> Documentação</h4>
+                        <a href="${data.docs}" target="_blank">Acessar <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                    ` : ''}
+                    
+                    ${data.tutorial ? `
+                    <div class="detail-card">
+                        <h4><i class="fas fa-graduation-cap"></i> Tutorial</h4>
+                        <a href="${data.tutorial}" target="_blank">Acessar <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                    ` : ''}
+                    
+                    ${data.download ? `
+                    <div class="detail-card">
+                        <h4><i class="fas fa-download"></i> Download</h4>
+                        <a href="${data.download}" target="_blank">Baixar <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         `;
     }
     
-    // Carrega as opções iniciais
-    await loadOptions();
+    function switchToDetailView() {
+        fetchBtn.style.display = 'none';
+        backBtn.style.display = 'inline-block';
+        currentView = 'details';
+    }
+    
+    function returnToListView() {
+        detailsContainer.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-info-circle"></i>
+                <p>Selecione um item para visualizar os detalhes</p>
+            </div>
+        `;
+        backBtn.style.display = 'none';
+        fetchBtn.style.display = 'inline-block';
+        currentView = 'list';
+    }
+    
+    function showLoading(element, message = 'Carregando...') {
+        element.innerHTML = `
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+    
+    function showError(element, message) {
+        element.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>${message}</p>
+            </div>
+        `;
+    }
 });

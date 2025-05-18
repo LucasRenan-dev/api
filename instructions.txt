@@ -1,0 +1,46 @@
+--> INSTRUCOES PARA USAR O PROGRAMA <--
+obs: certifique-se de ter o python na VERSAO 3.12.10 COM O PIP OU PIP3
+obs.1: Certifique-se, tambem, que o POSTGRESQL está baixado
+
+1 - Crie uma venv (ambiente virtual do python), na versao 3.12.10, conforme descrito acima
+1.1 - Apos isso, abra uma janela do terminal com sua .venv e execute (pip3 ou pip install requiriments.txt)
+2 - Garanta que o POSTSQL esta baixado
+3 - No app.py as configs do APP.CONFIG estao em branco, tanto login do DataBase, quanto secret key e afins, entao para tornar funcional, é necessario preenche-las
+
+4- SEU BANCO NAO ESTARA MODELADO PARA RODAR O PROGRAMA, É NECESSARIO FAZER AS MIGRATIONS:
+    step 1 - Abra uma janela do terminal na sua .venv
+    step 2 - rode o comando: flask db migrate -m 'upload db'
+    step 3 - flask db upgrade
+
+5 - Seu banco nao tera informacoes sobre as langs ou frameworks (voce precisa inclui-las), usando por exemplo, o ThunderClient (ou outra forma, o metodo post e a rota esta em app.py)
+5.1 - Como dito acima, todas as rotas para modificar as linguagens e frameworks estao em app.py (GET, POST, DELETE, PATCH), sinta-se livre para adapta-las ou usa-las
+5.2 - Para facilitar a vida, vou deixar o formato do JSON para o POST no fim do arquivo.
+
+6 - Feito tudo isso, abra uma janela no terminal (na pasta raiz do projeto, claro)
+    e execute o comando: python3 main.py
+
+7 - FEITO ISSO, TUDO DEVE FUNCIOAR, SE FUNCIONOU, BOA EXPERIENCIA, SE NAO FUNCIONOU, BOA SORTE !
+
+obs: json de frameworks
+{
+  "name": "nome",
+  "creation": "1900",
+  "creator": "criador",
+  "description": "descricao foda p carai",
+  "language": "python",
+  "download": "https://www.youtube.com",
+  "tutorial": "https://www.youtube.com",
+  "docs": "https://www.youtube.com"
+}
+
+obs: json de linguagens
+{
+  "name": "nome",
+  "creation": "1900",
+  "creator": "criador",
+  "description": "descricao foda p carai",
+  "typing": "python",
+  "download": "https://www.youtube.com",
+  "tutorial": "https://www.youtube.com",
+  "docs": "https://www.youtube.com"
+}

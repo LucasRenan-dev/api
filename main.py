@@ -1,23 +1,26 @@
 from flask import Flask
 from flask_cors import CORS
+from flask_login import LoginManager
 import webbrowser
 import threading
-from time import sleep
 
 
 #inicializa o flask
 app = Flask(__name__)
 CORS(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = '/login-page'
 
 #chama as rotas e a API
 
 from app import *
 
-#abrir a pagina HTML pra fazer as buscas
+#abre a pagina de registro pra mexer no programa
 def open_browser():
-    sleep(1)
+    webbrowser.open('http://127.0.0.1:5000/register')
 
-    webbrowser.open('templates\index.html')
+
 
 #rodar o site
 if __name__ == '__main__':

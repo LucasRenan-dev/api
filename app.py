@@ -1,28 +1,32 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_migrate import Migrate
 from db import db 
 from flask_cors import CORS    #importa as libs para fazer a aplicação funcionar
-from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt_identity
-
+from flask_login import login_user, login_required, logout_user, LoginManager, current_user
 
 
 #importa os modelos para o DB
 from models.langs import Lang
 from models.frameworks import Framework
-from  models.users import User
+from models.users import User
 
 
 
 app = Flask(__name__)
 CORS(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = '/login-page'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:senhafoda@localhost:5432/postgres'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = ''
+app.config['SECRET_KEY'] = 'chave_secreta_aqui'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app.config['JWT_SECRET_KEY'] = 'chave_secreta_pra_acessar_coisas'
-jwt = JWTManager(app)
 
-
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
 
 
 db.init_app(app)
@@ -107,74 +111,91 @@ def remove_framework(framework_id):
     return jsonify({"message": "framework removido com sucesso!"})
 
 
-#ROTAS E METODOS PARA O USUARIOS
 
-
-# ===> CADASTRAR O USUARIO - VERIFICAR SE JA EXISTE NO BANCO <===
+# ===>Rota para cadastro do usuario <===
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
 
-    # Validação corrigida (verifica se campos existem e não são vazios)
-    if not data or not data.get('email') or not data.get('senha'):
-        return jsonify({"error": "dados incompletos"}), 400
-    
-    # Verifica se o email já está cadastrado
+    #Se algum campo do form do front-end estiver incongruente, retorna um erro
+    required_fields = ['email', 'senha', 'nome']
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Dados incompletos. Campos obrigatórios: nome, email, senha"}), 400
+
+    if '@' not in data['email']: 
+        return jsonify({"error": "Email inválido"}), 400
+
     if User.query.filter_by(email=data['email']).first():
         return jsonify({"error": "Email já cadastrado"}), 409
-    
-    #se nenhum dos passo anteriores se cumprir, o usuario é cadastrado 
 
-    new_user = User(
-        name=data.get('nome'),
-        email= data['email'],
-        senha= data['senha']
-    )
+    try:
+        new_user = User(
+            name=data['nome'],
+            email=data['email'].lower(),
+            password=data['senha']  # O hash da senha é feito diretamente no modelo do usuario
+        )
 
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Usuário cadastrado com sucesso",
+            "user": {
+                "id": str(new_user.id),
+                "name": new_user.name,
+                "email": new_user.email
+            }
+        }), 201
 
-    db.session.add(new_user)
-    db.session.commit()
-    
-    return jsonify({"message": "usuario cadastrado com sucesso"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Erro ao cadastrar usuário", "details": str(e)}), 500
 
+#rota para renderizar o template de registro corretamente, via flask
+@app.route('/register', methods=['GET'])
+def open_registerpage():
+    return render_template('register.html')
 
-
-# ===> LOGIN DO USUARIO <===
+#com o usuario já cadastrado, essa rota faz o login e autoriza o acesso as rotas principais
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     
-    #Confere as credenciais no formulario
-    user = User.query.filter_by(email=data['email']).first()
-    if not user or not user.verificar_senha(data['senha']):
-        return jsonify({"error": "Email ou senha inválidos"}), 401
+    if not data or 'email' not in data or 'senha' not in data:
+        return jsonify({"error": "Email e senha são obrigatórios"}), 400
     
-    # CRIA O TOKEN JWT
-    access_token = create_access_token(identity=user.id)
+    user = User.query.filter_by(email=data['email'].lower()).first()
     
-    # RETORNA O TOKEN COM O LOGIN
+    if not user or not user.verify_password(data['senha']):
+        return jsonify({"error": "Email ou senha incorretos"}), 401
+    
+    login_user(user)
     return jsonify({
-        "access_token": access_token,
-        "user_id": user.id,
-        "message": "Login bem-sucedido"
+        "message": "Login bem-sucedido",
+        "redirect": "/dashboard"  #redirect para rota principal
     }), 200
 
-
-#ROTAS PARA ABRIR OS TEMPLATES(HTML) via flask, para integrar tudo
-
-#rota para logar/acessar sistema
-
-@app.route('/login-page', methods=['GET'])
+#carrega o templeta de login corretamente
+@app.route('/login', methods=['GET'])
 def open_loginpage():
     return render_template('login.html')
 
-#rota para a pagina de login (talvez precise de JWT eventualmente)
-@app.route('/register-page', methods=['GET'])
-def open_registerpage():
-    return render_template('register.html')
+
+#rota para fazer logout do user
+@app.route('/logout', methods=['POST'])
+@login_required
+def logout():
+    logout_user()
+    return jsonify({"message": "Logout realizado com sucesso"}), 200
 
 
+#rota principal, que acessa o app
 @app.route('/dashboard')
+@login_required  
 def dashboard():
-    return render_template('dashboard.html')
+    #uma das vericacoes pra ver se o user esta logado (tem outra no front-end)
+    if not current_user.is_authenticated:
+        return redirect(url_for('login.html'))
+    
+    return render_template('dashboard.html', user=current_user)
 
